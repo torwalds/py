@@ -13,17 +13,15 @@ class Application(tk.Frame):
         self.createWidgets()
 
     def createWidgets(self):
-        self.labeltop = tk.Label(self, text="HAHAHAHA")
-        self.labeltop.grid(row = 0, column = 0, columnspan = 2, sticky = tk.W)
 
-        self.labelpass = tk.Label(self, text="Password: ")
+        self.labelpass = tk.Label(self, font=("Impact", 20), foreground = "red", text="Current value: ")
         self.labelpass.grid(row = 1, column = 0, sticky = tk.W)
 
-        self.text = tk.Text(self, width = 20, height = 5, wrap = tk.WORD)
-        self.text.grid(row = 3, column = 0, sticky = tk.W)
+        self.text = tk.Text(self, bd = 0, font=("Impact", 25),  width = 5, height = 1, wrap = tk.WORD)
+        self.text.grid(row = 1, column = 2, sticky = tk.E)
 
-        self.quitButton = tk.Button(self, text="quit", command=self.quit)
-        self.quitButton.grid(row=4, column = 0, sticky = tk.W)
+        self.quitButton = tk.Button(self, font=("Impact", 14), text="quit", command=self.quit)
+        self.quitButton.grid(row=3, column = 0, sticky = tk.W)
     
 class COMread(threading.Thread):
     def __init__(self, interval):
