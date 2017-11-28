@@ -4,7 +4,8 @@ import serial
 import threading
 import time
 
-ser = serial.Serial("COM5", baudrate=115200)
+#ser = serial.Serial("COM5", baudrate=115200)
+logfile = open("c:\\files\\project_master\\log.txt", "rb+")
 
 class Application(tk.Frame):
     def __init__ (self, master=None):
@@ -32,12 +33,12 @@ class COMread(threading.Thread):
 
     def run(self):
         while True:
-            self.comdata = ser.read(4)
+            self.comdata = logfile.readlines()[-1]
             self.appl.text.delete("0.0", tk.END)
             self.appl.text.insert("0.0", self.comdata)
             time.sleep(self.interval)
 
-t = COMread(0.3)
+t = COMread(0.1)
 app = t.appl
 app.master.geometry("400x400")
 app.master.title("sample")
