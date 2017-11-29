@@ -1,11 +1,10 @@
 import tkinter as tk
 from tkinter import font
 import serial
-import threading
+import threading 
 import time
 
-#ser = serial.Serial("COM5", baudrate=115200)
-logfile = open("c:\\files\\project_master\\log.txt", "rb+")
+ser = serial.Serial("COM5", baudrate=115200)
 
 class Application(tk.Frame):
     def __init__ (self, master=None):
@@ -23,24 +22,45 @@ class Application(tk.Frame):
 
         self.quitButton = tk.Button(self, font=("Impact", 14), text="quit", command=self.quit)
         self.quitButton.grid(row=3, column = 0, sticky = tk.W)
-    
+
 class COMread(threading.Thread):
-    def __init__(self, interval):
+    def __init__(self):
         threading.Thread.__init__(self)
-        self.appl = Application()
         self.daemon = True
-        self.interval  = interval
+        self.lock = threading.Lock()
 
     def run(self):
         while True:
-            self.comdata = logfile.readlines()[-1]
+            self.lock.acquire()
+            self.logfile = open("c:\\files\\project_master\\log.txt", "a")
+            self.data = ser.readline(4)
+            self.strdata = str(self.data)
+            self.logfile.writelines(self.strdata + "\n")
+            self.logfile.close()
+            self.lock.release()
+            time.sleep(0.05)
+    
+class Output(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.appl = Application()
+        self.daemon = True
+        #self.interval  = interval
+
+    def run(self):
+        while True:
+            self.comdata = ser.readline(4)
             self.appl.text.delete("0.0", tk.END)
             self.appl.text.insert("0.0", self.comdata)
-            time.sleep(self.interval)
+            #time.sleep(self.interval)
 
-t = COMread(0.1)
+
+
+t = Output()
+c = COMread()
 app = t.appl
 app.master.geometry("400x400")
 app.master.title("sample")
+c.start()
 t.start()   
 app.mainloop()
