@@ -1,10 +1,13 @@
 import tkinter as tk
 from tkinter import font
-import serial
-import threading 
+import threading
+from threading import Thread, Lock
 import time
+import serial
 
 ser = serial.Serial("COM5", baudrate=115200)
+#logfile = open("c:\\files\\project_master\\log.txt", "rb+")
+lock = threading.Lock()
 
 class Application(tk.Frame):
     def __init__ (self, master=None):
@@ -23,44 +26,36 @@ class Application(tk.Frame):
         self.quitButton = tk.Button(self, font=("Impact", 14), text="quit", command=self.quit)
         self.quitButton.grid(row=3, column = 0, sticky = tk.W)
 
-class COMread(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.daemon = True
-        self.lock = threading.Lock()
+def COMread():
+    while True:
+        lock.acquire()
+        try:
+            logfile = open("c:\\files\\project_master\\log.txt", "a")
+            received = ser.readline(4)
+            strdata = str(received)
+            logfile.writelines(strdata + "\n")
+            logfile.close()
+        finally:
+            lock.release()
 
-    def run(self):
-        while True:
-            self.lock.acquire()
-            self.logfile = open("c:\\files\\project_master\\log.txt", "a")
-            self.data = ser.readline(4)
-            self.strdata = str(self.data)
-            self.logfile.writelines(self.strdata + "\n")
-            self.logfile.close()
-            self.lock.release()
-            time.sleep(0.05)
-    
-class Output(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.appl = Application()
-        self.daemon = True
-        #self.interval  = interval
+app = Application()
 
-    def run(self):
-        while True:
-            self.comdata = ser.readline(4)
-            self.appl.text.delete("0.0", tk.END)
-            self.appl.text.insert("0.0", self.comdata)
-            #time.sleep(self.interval)
+def Write():
+    while True:
+        lock.acquire()
+        try:
+            comdata = ser.readline(4)
+            app.text.delete("0.0", tk.END)
+            app.text.insert("0.0", comdata)
+        finally:
+            lock.release()
+            time.sleep(0.3)
 
-
-
-t = Output()
-c = COMread()
-app = t.appl
 app.master.geometry("400x400")
 app.master.title("sample")
-c.start()
-t.start()   
+
+Thread(target = COMread).start()
+Thread(target = Write).start()
+    
 app.mainloop()
+
