@@ -37,7 +37,6 @@ def COMread():
             logfile.close()
         finally:
             lock.release()
-
 app = Application()
 
 def Write():
@@ -49,13 +48,16 @@ def Write():
             app.text.insert("0.0", comdata)
         finally:
             lock.release()
-            time.sleep(0.3)
 
 app.master.geometry("400x400")
 app.master.title("sample")
 
-Thread(target = COMread).start()
-Thread(target = Write).start()
-    
+t1 = Thread(target = COMread)
+t2 = Thread(target = Write)
+t1.daemon = True
+t2.daemon = True
+t1.start()
+t2.start()
+
 app.mainloop()
 
