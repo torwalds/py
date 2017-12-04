@@ -1,63 +1,60 @@
-import tkinter as tk
+from tkinter import *
 from tkinter import font
-import threading
-from threading import Thread, Lock
+import os
+import glob
 import time
+import threading
+import queue as qe
+from queue import Empty
 import serial
 
 ser = serial.Serial("COM5", baudrate=115200)
-#logfile = open("c:\\files\\project_master\\log.txt", "rb+")
-lock = threading.Lock()
+logfile = open("c:\\files\\project_master\\log.txt", "a")
 
-class Application(tk.Frame):
-    def __init__ (self, master=None):
-        tk.Frame.__init__(self, master)
-        self.grid()
-        self.createWidgets()
-
-    def createWidgets(self):
-
-        self.labelpass = tk.Label(self, font=("Impact", 20), foreground = "red", text="Current value: ")
-        self.labelpass.grid(row = 1, column = 0, sticky = tk.W)
-
-        self.text = tk.Text(self, bd = 0, font=("Impact", 25),  width = 5, height = 1, wrap = tk.WORD)
-        self.text.grid(row = 1, column = 2, sticky = tk.E)
-
-        self.quitButton = tk.Button(self, font=("Impact", 14), text="quit", command=self.quit)
-        self.quitButton.grid(row=3, column = 0, sticky = tk.W)
-
-def COMread():
+def update_temp(queue):
     while True:
-        lock.acquire()
+
+        tempread=ser.readline(4)
+        strdata = str(tempread)
+        logfile.writelines(strdata + "\n")
+        queue.put(tempread)
+        #time.sleep(0.01)
+
+class Gui(object):
+    def __init__(self, queue):
+        self.queue = queue
+
+        #Make the window
+        self.root = Tk() 
+        self.root.wm_title("Home Management System")
+        self.root.minsize(400, 400)
+
+        self.equipTemp = StringVar()        
+
+        #Garage Temp Label
+        Label2=Label(self.root, textvariable=self.equipTemp, width=6, justify=RIGHT)
+        Label2.place(x=0, y=0)
+
+        self.root.after(300, self.read_queue)
+
+    def read_queue(self):
+        """ Check for updated temp data"""
         try:
-            logfile = open("c:\\files\\project_master\\log.txt", "a")
-            received = ser.readline(4)
-            strdata = str(received)
-            logfile.writelines(strdata + "\n")
-            logfile.close()
-        finally:
-            lock.release()
-app = Application()
+            temp = self.queue.get_nowait()
+            self.equipTemp.set(temp)
+        except qe.Empty:
+            pass
 
-def Write():
-    while True:
-        lock.acquire()
-        try:
-            comdata = ser.readline(4)
-            app.text.delete("0.0", tk.END)
-            app.text.insert("0.0", comdata)
-        finally:
-            lock.release()
+        self.root.after(300, self.read_queue)
 
-app.master.geometry("400x400")
-app.master.title("sample")
-
-t1 = Thread(target = COMread)
-t2 = Thread(target = Write)
-t1.daemon = True
-t2.daemon = True
-t1.start()
-t2.start()
-
-app.mainloop()
-
+if __name__ == "__main__":
+    queue = qe.LifoQueue()
+    t = threading.Thread(target=update_temp, args=(queue,))
+    t.daemon = True
+    t.start()
+    # Build GUI object
+    gui = Gui(queue)
+    # Start mainloop
+    
+    gui.root.mainloop()
+    logfile.close()  
