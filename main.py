@@ -32,13 +32,14 @@ class Gui(object):
         self.equipTemp = StringVar()        
 
         #Garage Temp Label
-        Label2=Label(self.root, textvariable=self.equipTemp, width=6, justify=RIGHT)
-        Label2.place(x=0, y=0)
+        labelpass = Label(self.root, font=("Impact", 20), foreground = "black", text="Current value: ")
+        labelpass.place(x=0,y=0)
+        Label2=Label(self.root, textvariable=self.equipTemp, font=("Impact", 20), foreground = "red", justify=RIGHT)
+        Label2.place(x=180, y=0)
 
         self.root.after(300, self.read_queue)
 
     def read_queue(self):
-        """ Check for updated temp data"""
         try:
             temp = self.queue.get_nowait()
             self.equipTemp.set(temp)
