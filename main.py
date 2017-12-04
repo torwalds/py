@@ -23,19 +23,22 @@ def update_temp(queue):
 class Gui(object):
     def __init__(self, queue):
         self.queue = queue
-
         #Make the window
         self.root = Tk() 
+        self.root.overrideredirect(1)
         self.root.wm_title("Home Management System")
-        self.root.minsize(400, 400)
+        #self.root.minsize(400, 400)
+        self.root.geometry('%dx%d+%d+%d' % (400, 400, 500, 500))
 
         self.equipTemp = StringVar()        
 
-        #Garage Temp Label
+        
         labelpass = Label(self.root, font=("Impact", 20), foreground = "black", text="Current value: ")
         labelpass.place(x=0,y=0)
         Label2=Label(self.root, textvariable=self.equipTemp, font=("Impact", 20), foreground = "red", justify=RIGHT)
         Label2.place(x=180, y=0)
+        bQuit = Button(self.root, text="Quit", command=self.root.quit)
+        bQuit.place(x = 0, y = 50)
 
         self.root.after(300, self.read_queue)
 
