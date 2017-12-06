@@ -7,16 +7,19 @@ import threading
 import queue as qe
 from queue import Empty
 import serial
+import csv
 
 ser = serial.Serial("COM5", baudrate=115200)
-logfile = open("c:\\files\\project_master\\log.txt", "a")
+logfile = open("c:\\files\\project_master\\log.csv", "a")
+i = 0
 
 def update_temp(queue):
+    global i
     while True:
-
+        i = i + 0.005
         tempread=ser.readline(4)
-        strdata = str(tempread)
-        logfile.writelines(strdata + "\n")
+        strdata = str(tempread, 'utf-8')
+        logfile.writelines(strdata + "," + str("%.3f" % i) +"," + "\n")
         queue.put(tempread)
         #time.sleep(0.01)
 
